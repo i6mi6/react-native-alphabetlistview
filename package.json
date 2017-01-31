@@ -17,8 +17,5 @@
     "react-native",
     "ios",
     "android"
-  ],
-  "dependencies": {
-    "merge": "^1.2.0"
-  }
+  ]
 }
