@@ -118,7 +118,7 @@ export default class SelectableSectionsListView extends Component {
 
       sectionHeaderHeight = numheaders * sectionHeaderHeight;
       y += numcells * cellHeight + sectionHeaderHeight;
-      const maxY = this.totalHeight - this.containerHeight + headerHeight;
+      const maxY = this.totalHeight + headerHeight;
       y = y > maxY ? maxY : y;
 
       console.log(this.totalHeight, this.containerHeight, maxY, y)
