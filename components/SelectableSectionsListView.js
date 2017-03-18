@@ -75,6 +75,7 @@ export default class SelectableSectionsListView extends Component {
     }
 
     this.sectionItemCount = {};
+    console.log(data)
     this.totalHeight = Object.keys(data)
       .reduce((carry, key) => {
         var itemCount = data[key].length;
