@@ -121,6 +121,8 @@ export default class SelectableSectionsListView extends Component {
       const maxY = this.totalHeight - this.containerHeight + headerHeight;
       y = y > maxY ? maxY : y;
 
+      console.log(this.totalHeight, this.containerHeight, maxY, y)
+
       this.refs.listview.scrollTo({ x:0, y, animated: true });
     } else {
       UIManager.measureLayout(this.cellTagMap[section], ReactNative.findNodeHandle(this.refs.listview), () => {}, (x, y, w, h) => {
