@@ -79,7 +79,7 @@ export default class SelectableSectionsListView extends Component {
       .reduce((carry, key) => {
         var itemCount = data[key].length;
         carry += itemCount * this.props.cellHeight;
-        carry += this.props.sectionHeaderHeight;
+        carry += itemCount > 0 ? his.props.sectionHeaderHeight : 0;
 
         this.sectionItemCount[key] = itemCount;
 
@@ -110,11 +110,13 @@ export default class SelectableSectionsListView extends Component {
       const index = keys.indexOf(section);
 
       let numcells = 0;
+      let numheaders = 0;
       for (var i = 0; i < index; i++) {
         numcells += this.props.data[keys[i]].length;
+        numheaders += this.props.data[keys[i]].length > 0 ? 1 : 0;
       }
 
-      sectionHeaderHeight = index * sectionHeaderHeight;
+      sectionHeaderHeight = numheaders * sectionHeaderHeight;
       y += numcells * cellHeight + sectionHeaderHeight;
       const maxY = this.totalHeight - this.containerHeight + headerHeight;
       y = y > maxY ? maxY : y;
