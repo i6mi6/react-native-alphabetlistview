@@ -140,7 +140,7 @@ export default class SelectableSectionsListView extends Component {
       this.props.getSectionTitle(sectionId) :
       sectionId;
 
-    return (
+    return sectionData.length > 0 ? (
       <SectionHeader
         component={this.props.sectionHeader}
         title={title}
@@ -148,7 +148,7 @@ export default class SelectableSectionsListView extends Component {
         sectionData={sectionData}
         updateTag={updateTag}
       />
-    );
+    ) : null;
   }
 
   renderFooter() {
