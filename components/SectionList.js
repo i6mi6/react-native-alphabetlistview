@@ -90,7 +90,7 @@ export default class SectionList extends Component {
     this.fixSectionItemMeasure();
   }
 
-  // fix bug when change data 
+  // fix bug when change data
   componentDidUpdate() {
     this.fixSectionItemMeasure();
   }
@@ -117,7 +117,7 @@ export default class SectionList extends Component {
         /> :
         <View
           style={styles.item}>
-          <Text style={textStyle}>{title}</Text>
+          <Text style={textStyle}>{title.atChar(0)}</Text>
         </View>;
 
       //if(index){
@@ -195,7 +195,8 @@ const styles = StyleSheet.create({
   },
 
   item: {
-    padding: 0
+    padding: 0,
+    fontSize: 11
   },
 
   text: {
