@@ -54,7 +54,7 @@ export default class SelectableSectionsListView extends Component {
   componentDidMount() {
     // push measuring into the next tick
     setTimeout(() => {
-      UIManager.measure(ReactNative.findNodeHandle(this.refs.view), (x,y,w,h) => {
+      UIManager.measure(ReactNative.findNodeHandle(this.refs.view) || 0, (x,y,w,h) => {
         this.containerHeight = h;
         if (this.props.contentInset && this.props.data && this.props.data.length > 0) {
           this.scrollToSection(Object.keys(this.props.data)[0]);
