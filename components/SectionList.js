@@ -61,7 +61,9 @@ export default class SectionList extends Component {
       return;
     }
 
-    if (this.lastSelectedIndex !== index && this.props.data[this.props.sections[index]].length) {
+
+
+    if (this.lastSelectedIndex !== index && this.props.data[index].data.length) {
       this.lastSelectedIndex = index;
       this.onSectionSelect(this.props.sections[index], true);
     }
@@ -99,14 +101,11 @@ export default class SectionList extends Component {
 
   render() {
     const SectionComponent = this.props.component;
-    const sections = this.props.sections.map((section, index) => {
-      const title = this.props.getSectionListTitle ?
-        this.props.getSectionListTitle(section) :
-        section;
 
-      const textStyle = this.props.data[section].length ?
-        styles.text :
-        styles.inactivetext;
+    const sections = this.props.sections.map((section, index) => {
+      const title = section.title;
+
+      const textStyle = styles.text
 
       const child = SectionComponent ?
         <SectionComponent
