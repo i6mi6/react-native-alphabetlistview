@@ -8,6 +8,7 @@ import ReactNative, {
   StyleSheet,
   View,
   NativeModules,
+  SectionList as SectionListNative
 } from 'react-native';
 import merge from 'merge';
 
@@ -54,7 +55,7 @@ export default class SelectableSectionsListView extends Component {
   componentDidMount() {
     // push measuring into the next tick
     setTimeout(() => {
-      UIManager.measure(ReactNative.findNodeHandle(this.refs.view), (x,y,w,h) => {
+      UIManager.measure(ReactNative.findNodeHandle(this.refs.view), (x, y, w, h) => {
         this.containerHeight = h;
         if (this.props.contentInset && this.props.data && this.props.data.length > 0) {
           this.scrollToSection(Object.keys(this.props.data)[0]);
@@ -98,41 +99,20 @@ export default class SelectableSectionsListView extends Component {
   }
 
   scrollToSection(section) {
+    const index = this.props.data.indexOf(section);
+
+
     let y = 0;
     let headerHeight = this.props.headerHeight || 0;
     y += headerHeight;
-    
-    if(this.props.contentInset) {
-        y -= this.props.contentInset.top - headerHeight
+
+    if (this.props.contentInset) {
+      y -= this.props.contentInset.top - headerHeight
     }
 
-    if (!this.props.useDynamicHeights) {
-      const cellHeight = this.props.cellHeight;
-      let sectionHeaderHeight = this.props.sectionHeaderHeight;
-      let keys = Object.keys(this.props.data);
-      if (typeof(this.props.compareFunction) === "function") {
-        keys = keys.sort(this.props.compareFunction);
-      }
-      const index = keys.indexOf(section);
 
-      let numcells = 0;
-      for (var i = 0; i < index; i++) {
-        numcells += this.props.data[keys[i]].length;
-      }
-
-      sectionHeaderHeight = index * sectionHeaderHeight;
-      y += numcells * cellHeight + sectionHeaderHeight;
-      const maxY = this.totalHeight - this.containerHeight + headerHeight;
-      y = y > maxY ? maxY : y;
-
-      this.refs.listview.scrollTo({ x:0, y, animated: true });
-    } else {
-      UIManager.measureLayout(this.cellTagMap[section], ReactNative.findNodeHandle(this.refs.listview), () => {}, (x, y, w, h) => {
-        y = y - this.props.sectionHeaderHeight;
-        this.refs.listview.scrollTo({ x:0, y, animated: true });
-      });
-    }
-
+    let sectionHeaderHeight = this.props.sectionHeaderHeight;
+    this.refs.listview.scrollToLocation({ itemIndex: 0, sectionIndex: index, animated: true, viewOffset: sectionHeaderHeight });
     this.props.onScrollToSection && this.props.onScrollToSection(section);
   }
 
@@ -142,13 +122,13 @@ export default class SelectableSectionsListView extends Component {
       null;
 
     const title = this.props.getSectionTitle ?
-      this.props.getSectionTitle(sectionId) :
+      this.props.getSectionTitle(sectionData) :
       sectionId;
 
     return (
       <SectionHeader
         component={this.props.sectionHeader}
-        title={title}
+        title={sectionData.section.title}
         sectionId={sectionId}
         sectionData={sectionData}
         updateTag={updateTag}
@@ -166,17 +146,17 @@ export default class SelectableSectionsListView extends Component {
     return <Header />;
   }
 
-  renderRow(item, sectionId, index) {
+  renderRow({ item, index, section }) {
     const CellComponent = this.props.cell;
     index = parseInt(index, 10);
 
     const isFirst = index === 0;
-    const isLast = this.sectionItemCount && this.sectionItemCount[sectionId]-1 === index;
+    const isLast = this.sectionItemCount && this.sectionItemCount[section] - 1 === index;
 
     const props = {
       isFirst,
       isLast,
-      sectionId,
+      section,
       index,
       item,
       offsetY: this.state.offsetY,
@@ -215,30 +195,21 @@ export default class SelectableSectionsListView extends Component {
     let sectionList;
     let renderSectionHeader;
     let dataSource;
-    let sections = Object.keys(data);
+    let sections = data
+    sectionList = !this.props.hideSectionList ?
+      <SectionList
+        style={this.props.sectionListStyle}
+        onSectionSelect={this.scrollToSection}
+        sections={sections}
+        data={data}
+        getSectionListTitle={this.props.getSectionListTitle}
+        component={this.props.sectionListItem}
+        fontStyle={this.props.sectionListFontStyle}
+      /> :
+      null;
 
-    if (typeof(this.props.compareFunction) === "function") {
-      sections = sections.sort(this.props.compareFunction);
-    }
+    renderSectionHeader = this.renderSectionHeader;
 
-    if (dataIsArray) {
-      dataSource = this.state.dataSource.cloneWithRows(data);
-    } else {
-      sectionList = !this.props.hideSectionList ?
-        <SectionList
-          style={this.props.sectionListStyle}
-          onSectionSelect={this.scrollToSection}
-          sections={sections}
-          data={data}
-          getSectionListTitle={this.props.getSectionListTitle}
-          component={this.props.sectionListItem}
-          fontStyle={this.props.sectionListFontStyle}
-        /> :
-        null;
-
-      renderSectionHeader = this.renderSectionHeader;
-      dataSource = this.state.dataSource.cloneWithRowsAndSections(data, sections);
-    }
 
     const renderFooter = this.props.footer ?
       this.renderFooter :
@@ -251,20 +222,24 @@ export default class SelectableSectionsListView extends Component {
     const props = merge({}, this.props, {
       onScroll: this.onScroll,
       onScrollAnimationEnd: this.onScrollAnimationEnd,
-      dataSource,
+      sections: this.props.data,
       renderFooter,
       renderHeader,
-      renderRow: this.renderRow,
+      renderItem: this.renderRow,
       renderSectionHeader
     });
 
     props.style = void 0;
-
     return (
       <View ref="view" style={[styles.container, this.props.style]}>
-        <ListView
+        <SectionListNative
           ref="listview"
+          sections={this.props.data}
+          renderSectionHeader={this.renderSectionHeader}
+          renderItem={this.renderRow}
           {...props}
+          keyExtractor={(item, index) => index}
+          ListFooterComponent={renderFooter}
         />
         {sectionList}
       </View>
@@ -274,7 +249,8 @@ export default class SelectableSectionsListView extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 0,
+    flexDirection: 'row'
   }
 });
 
