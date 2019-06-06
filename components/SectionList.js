@@ -129,15 +129,17 @@ export default class SectionList extends Component {
     });
 
     return (
-      <View
-        ref='view'
-        style={[styles.container, this.props.style]}
-        onStartShouldSetResponder={returnTrue}
-        onMoveShouldSetResponder={returnTrue}
-        onResponderGrant={this.detectAndScrollToSection}
-        onResponderMove={this.detectAndScrollToSection}
-        onResponderRelease={this.resetSection}>
-        {sections}
+      <View style={styles.container}>
+        <View
+          ref="view"
+          style={[styles.container, this.props.style]}
+          onStartShouldSetResponder={returnTrue}
+          onMoveShouldSetResponder={returnTrue}
+          onResponderGrant={this.detectAndScrollToSection}
+          onResponderMove={this.detectAndScrollToSection}
+          onResponderRelease={this.resetSection}>
+          {sections}
+        </View>
       </View>
     );
   }
@@ -179,9 +181,9 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     backgroundColor: 'transparent',
-    alignItems: 'flex-end',
-    justifyContent: 'flex-start',
-    right: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    right: 0,
     top: 0,
     bottom: 0
   },
