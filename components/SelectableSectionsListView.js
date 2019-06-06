@@ -101,7 +101,7 @@ export default class SelectableSectionsListView extends Component {
     let y = 0;
     let headerHeight = this.props.headerHeight || 0;
     y += headerHeight;
-    
+
     if(this.props.contentInset) {
         y -= this.props.contentInset.top - headerHeight
     }
@@ -125,11 +125,11 @@ export default class SelectableSectionsListView extends Component {
       const maxY = this.totalHeight - this.containerHeight + headerHeight;
       y = y > maxY ? maxY : y;
 
-      this.refs.listview.scrollTo({ x:0, y, animated: true });
+      this.refs.listview.scrollTo({ x:0, y, animated: this.props.animateScroll });
     } else {
       UIManager.measureLayout(this.cellTagMap[section], ReactNative.findNodeHandle(this.refs.listview), () => {}, (x, y, w, h) => {
         y = y - this.props.sectionHeaderHeight;
-        this.refs.listview.scrollTo({ x:0, y, animated: true });
+        this.refs.listview.scrollTo({ x: 0, y, animated: this.props.animateScroll });
       });
     }
 
@@ -318,6 +318,11 @@ SelectableSectionsListView.propTypes = {
    * Callback which should be called when the user scrolls to a section
    */
   onScrollToSection: PropTypes.func,
+
+  /**
+   * True/false whether to animate the scrolling
+   */
+  animateScroll: PropTypes.bool,
 
   /**
    * The cell element to render for each row

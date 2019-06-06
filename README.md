@@ -85,6 +85,11 @@ Callback which should be called when a cell has been selected
 `function`
 Callback which should be called when the user scrolls to a section
 
+#### animateScroll
+
+`boolean`
+True/false whether to animate the scrolling. Default: false.
+
 #### cell
 
 `function` **required**
