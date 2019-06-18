@@ -77,9 +77,11 @@ export default class SelectableSectionsListView extends Component {
     }
 
     this.sectionItemCount = {};
+    this.totalItemCount = 0;
     this.totalHeight = Object.keys(data)
       .reduce((carry, key) => {
         var itemCount = data[key].length;
+        this.totalItemCount += itemCount;
         carry += itemCount * this.props.cellHeight;
         carry += this.props.sectionHeaderHeight;
 
@@ -252,6 +254,7 @@ export default class SelectableSectionsListView extends Component {
       onScroll: this.onScroll,
       onScrollAnimationEnd: this.onScrollAnimationEnd,
       dataSource,
+      initialListSize: this.totalItemCount,
       renderFooter,
       renderHeader,
       renderRow: this.renderRow,
