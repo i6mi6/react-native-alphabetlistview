@@ -255,7 +255,8 @@ export default class SelectableSectionsListView extends Component {
       renderFooter,
       renderHeader,
       renderRow: this.renderRow,
-      renderSectionHeader
+      renderSectionHeader,
+      removeClippedSubviews: false
     });
 
     props.style = void 0;
