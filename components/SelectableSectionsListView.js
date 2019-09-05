@@ -4,11 +4,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactNative, {
-  ListView,
   StyleSheet,
   View,
   NativeModules,
 } from 'react-native';
+import ListView from 'deprecated-react-native-listview';
 import merge from 'merge';
 
 import SectionHeader from './SectionHeader';
