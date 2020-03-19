@@ -1,3 +1,5 @@
+## Improved functionality
+
 ## Based on johanneslumpe's react-native-selectablesectionlistview, thanks to him for the awesome component!      
 99% of this component was done by @johanneslumpe, and I just replaced the deprecated API for newer react native version(>=0.13), and used a little trick to support both iOS and Android platforms.      
     
@@ -284,9 +286,16 @@ class MyComponent extends Component {
         sectionListItem={SectionItem}
         sectionHeader={SectionHeader}
         sectionHeaderHeight={22.5}
+        showLetter
       />
     );
   }
 }
 
 ```
+
+# TODO:
+
+- [ ] Add descriptions for new props
+- [ ] Update example
+- [ ] Update gif preview

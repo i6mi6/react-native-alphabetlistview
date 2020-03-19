@@ -4,7 +4,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactNative, {
-  ListView,
+  FlatList,
+  SectionList as RNSectionList,
   StyleSheet,
   View,
   NativeModules,
@@ -23,16 +24,12 @@ export default class SelectableSectionsListView extends Component {
     super(props, context);
 
     this.state = {
-      dataSource: new ListView.DataSource({
-        rowHasChanged: (row1, row2) => row1 !== row2,
-        sectionHeaderHasChanged: (prev, next) => prev !== next
-      }),
       offsetY: 0
     };
 
     this.renderFooter = this.renderFooter.bind(this);
     this.renderHeader = this.renderHeader.bind(this);
-    this.renderRow = this.renderRow.bind(this);
+    this.renderItem = this.renderItem.bind(this);
     this.renderSectionHeader = this.renderSectionHeader.bind(this);
 
     this.onScroll = this.onScroll.bind(this);
@@ -97,46 +94,34 @@ export default class SelectableSectionsListView extends Component {
     this.cellTagMap[section] = tag;
   }
 
-  scrollToSection(section) {
-    let y = 0;
-    let headerHeight = this.props.headerHeight || 0;
-    y += headerHeight;
-    
-    if(this.props.contentInset) {
-        y -= this.props.contentInset.top - headerHeight
-    }
-
-    if (!this.props.useDynamicHeights) {
-      const cellHeight = this.props.cellHeight;
-      let sectionHeaderHeight = this.props.sectionHeaderHeight;
-      let keys = Object.keys(this.props.data);
-      if (typeof(this.props.compareFunction) === "function") {
-        keys = keys.sort(this.props.compareFunction);
-      }
-      const index = keys.indexOf(section);
-
-      let numcells = 0;
-      for (var i = 0; i < index; i++) {
-        numcells += this.props.data[keys[i]].length;
-      }
-
-      sectionHeaderHeight = index * sectionHeaderHeight;
-      y += numcells * cellHeight + sectionHeaderHeight;
-      const maxY = this.totalHeight - this.containerHeight + headerHeight;
-      y = y > maxY ? maxY : y;
-
-      this.refs.listview.scrollTo({ x:0, y, animated: true });
-    } else {
-      UIManager.measureLayout(this.cellTagMap[section], ReactNative.findNodeHandle(this.refs.listview), () => {}, (x, y, w, h) => {
-        y = y - this.props.sectionHeaderHeight;
-        this.refs.listview.scrollTo({ x:0, y, animated: true });
-      });
-    }
-
-    this.props.onScrollToSection && this.props.onScrollToSection(section);
+  convertDataToSections(data) {
+    return Object.keys(data).map(key => ({ data: data[key], key })).filter(d => d.data.length);
   }
 
-  renderSectionHeader(sectionData, sectionId) {
+  scrollToSection(section) {
+    try {
+      const { data } = this.props;
+      const letterIndex = Object.keys(data).indexOf(section);
+
+      if (letterIndex > -1 && Object.values(data)[letterIndex].length) {
+        const sections = this.convertDataToSections(data);
+        const sectionsMap = Object.values(sections).map(s => s.key);
+        const sectionIndex = sectionsMap.indexOf(section);
+
+        this.refs.listview.scrollToLocation({ animated: true, itemIndex: 0, sectionIndex });
+      }
+
+      this.props.onScrollToSection && this.props.onScrollToSection(section);
+    } catch (e) {
+      console.warn(e.toString(), e);
+    }
+  }
+
+  // renderSectionHeader(sectionData, sectionId) {
+  renderSectionHeader({ section }) {
+    const sectionData = section.data;
+    const sectionId = section.key;
+
     const updateTag = this.props.useDynamicHeights ?
       this.updateTagInSectionMap :
       null;
@@ -166,17 +151,18 @@ export default class SelectableSectionsListView extends Component {
     return <Header />;
   }
 
-  renderRow(item, sectionId, index) {
+  // renderRow(item, sectionId, index) {
+  renderItem({ item, index }) {
     const CellComponent = this.props.cell;
     index = parseInt(index, 10);
 
     const isFirst = index === 0;
-    const isLast = this.sectionItemCount && this.sectionItemCount[sectionId]-1 === index;
+    // const isLast = this.sectionItemCount && this.sectionItemCount[sectionId]-1 === index;
 
     const props = {
       isFirst,
-      isLast,
-      sectionId,
+      // isLast,
+      // sectionId,
       index,
       item,
       offsetY: this.state.offsetY,
@@ -214,16 +200,14 @@ export default class SelectableSectionsListView extends Component {
     const dataIsArray = Array.isArray(data);
     let sectionList;
     let renderSectionHeader;
-    let dataSource;
     let sections = Object.keys(data);
+    const ListComponent = dataIsArray ? FlatList : RNSectionList;
 
     if (typeof(this.props.compareFunction) === "function") {
       sections = sections.sort(this.props.compareFunction);
     }
 
-    if (dataIsArray) {
-      dataSource = this.state.dataSource.cloneWithRows(data);
-    } else {
+    if (!dataIsArray) {
       sectionList = !this.props.hideSectionList ?
         <SectionList
           style={this.props.sectionListStyle}
@@ -233,11 +217,17 @@ export default class SelectableSectionsListView extends Component {
           getSectionListTitle={this.props.getSectionListTitle}
           component={this.props.sectionListItem}
           fontStyle={this.props.sectionListFontStyle}
+          wrapperStyle={this.props.sectionListWrapperStyle}
+          showLetter={this.props.showLetter}
+          letterLabelStyle={this.props.letterLabelStyle}
+          letterLabelFontStyle={this.props.letterLabelFontStyle}
+          mainColor={this.props.mainColor}
+          reversedColor={this.props.reversedColor}
+          renderLetterLabelText={this.props.renderLetterLabelText}
         /> :
         null;
 
       renderSectionHeader = this.renderSectionHeader;
-      dataSource = this.state.dataSource.cloneWithRowsAndSections(data, sections);
     }
 
     const renderFooter = this.props.footer ?
@@ -251,10 +241,11 @@ export default class SelectableSectionsListView extends Component {
     const props = merge({}, this.props, {
       onScroll: this.onScroll,
       onScrollAnimationEnd: this.onScrollAnimationEnd,
-      dataSource,
+      data,
+      sections: this.convertDataToSections(data),
       renderFooter,
       renderHeader,
-      renderRow: this.renderRow,
+      renderItem: this.renderItem,
       renderSectionHeader
     });
 
@@ -262,7 +253,7 @@ export default class SelectableSectionsListView extends Component {
 
     return (
       <View ref="view" style={[styles.container, this.props.style]}>
-        <ListView
+        <ListComponent
           ref="listview"
           {...props}
         />
@@ -403,4 +394,19 @@ SelectableSectionsListView.propTypes = {
    * Selector styles
    */
   sectionListFontStyle: stylesheetProp,
+
+  // TODO: Add description to new props
+  showLetter: PropTypes.bool,
+  letterLabelStyle: stylesheetProp,
+  letterLabelFontStyle: stylesheetProp,
+  mainColor: PropTypes.string,
+  reversedColor: PropTypes.string,
+  renderLetterLabelText: PropTypes.func,
+};
+
+SectionList.defaultProps = {
+  letterLabelStyle: {},
+  letterLabelFontStyle: {},
+  mainColor: '#008fff',
+  reversedColor: 'white',
 };

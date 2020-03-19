@@ -22,7 +22,29 @@ export default class SectionList extends Component {
     this.onSectionSelect = this.onSectionSelect.bind(this);
     this.resetSection = this.resetSection.bind(this);
     this.detectAndScrollToSection = this.detectAndScrollToSection.bind(this);
-    this.lastSelectedIndex = null;
+    // this.lastSelectedIndex = null;
+    let this_lastSelectedIndex = null;
+
+    Object.defineProperty(this, 'lastSelectedIndex', {
+      set(val) {
+        const nextState = { lastSelectedIndex: val };
+
+        if (!val) {
+          nextState.evtY = 0;
+        }
+
+        this.setState(nextState);
+        this_lastSelectedIndex = val;
+      },
+      get() {
+        return this_lastSelectedIndex;
+      }
+    });
+
+    this.state = {
+      lastSelectedIndex: null,
+      evtY: 0,
+    }
   }
 
   onSectionSelect(sectionId, fromTouch) {
@@ -65,6 +87,10 @@ export default class SectionList extends Component {
       this.lastSelectedIndex = index;
       this.onSectionSelect(this.props.sections[index], true);
     }
+
+    this.setState({
+      evtY: Math.round(ev.locationY),
+    });
   }
 
   fixSectionItemMeasure() {
@@ -97,6 +123,50 @@ export default class SectionList extends Component {
     this.measureTimer && clearTimeout(this.measureTimer);
   }
 
+  getLetterLabel() {
+    if (!this.props.showLetter || !this.lastSelectedIndex) {
+      return null;
+    }
+
+    const labelStyle = [
+      styles.letter_label,
+      {
+        backgroundColor: this.props.mainColor,
+        top: this.state.evtY - ((this.props.letterLabelStyle.height || styles.letter_label.height) / 2),
+      },
+      this.props.letterLabelStyle,
+    ];
+
+    const textFontSize = Math.round(Math.min(this.props.letterLabelStyle.width || styles.letter_label.width, this.props.letterLabelStyle.height || styles.letter_label.height) * 0.7);
+
+    const textStyle = [
+      styles.letter_label_text,
+      {
+        color: this.props.reversedColor,
+        fontSize: textFontSize,
+      },
+      this.props.letterLabelFontStyle,
+    ];
+
+    return (
+      <View style={labelStyle}>
+        <Text style={textStyle}>{this.renderLetterLabelText()}</Text>
+      </View>
+    )
+  }
+
+  renderLetterLabelText() {
+    const section = this.props.sections[this.lastSelectedIndex];
+
+    return (
+      this.props.renderLetterLabelText
+        ? this.props.renderLetterLabelText(section)
+          : this.props.getSectionListTitle
+            ? this.props.getSectionListTitle(section)
+            : section
+    );
+  }
+
   render() {
     const SectionComponent = this.props.component;
     const sections = this.props.sections.map((section, index) => {
@@ -115,7 +185,7 @@ export default class SectionList extends Component {
         /> :
         <View
           style={styles.item}>
-          <Text style={[textStyle, this.props.fontStyle]}>{title}</Text>
+          <Text style={[textStyle, { color: this.props.mainColor }, this.props.fontStyle]}>{title}</Text>
         </View>;
 
       //if(index){
@@ -136,15 +206,20 @@ export default class SectionList extends Component {
       //}
     });
 
+    const letterLabel = this.getLetterLabel();
+
     return (
-      <View ref="view" style={[styles.container, this.props.style]}
-        onStartShouldSetResponder={returnTrue}
-        onMoveShouldSetResponder={returnTrue}
-        onResponderGrant={this.detectAndScrollToSection}
-        onResponderMove={this.detectAndScrollToSection}
-        onResponderRelease={this.resetSection}
-      >
-        {sections}
+      <View style={[styles.wrapper, this.props.wrapperStyle]}>
+        <View ref="view" style={[styles.container, this.props.style]}
+          onStartShouldSetResponder={returnTrue}
+          onMoveShouldSetResponder={returnTrue}
+          onResponderGrant={this.detectAndScrollToSection}
+          onResponderMove={this.detectAndScrollToSection}
+          onResponderRelease={this.resetSection}
+        >
+          {letterLabel}
+          {sections}
+        </View>
       </View>
     );
   }
@@ -187,10 +262,18 @@ SectionList.propTypes = {
     PropTypes.number,
     PropTypes.object,
   ]),
+
+  // TODO: Add description to new props
+  showLetter: PropTypes.bool,
+  letterLabelStyle: PropTypes.any,
+  letterLabelFontStyle: PropTypes.any,
+  mainColor: PropTypes.string,
+  reversedColor: PropTypes.string,
+  renderLetterLabelText: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     position: 'absolute',
     backgroundColor: 'transparent',
     alignItems:'flex-end',
@@ -200,17 +283,40 @@ const styles = StyleSheet.create({
     bottom: 0
   },
 
+  container: {
+    minWidth: 20,
+    backgroundColor: 'rgba(0,0,0,0)',
+  },
+
   item: {
     padding: 0
   },
 
   text: {
     fontWeight: '700',
-    color: '#008fff'
+    paddingHorizontal: 5,
+    textAlign: 'center',
   },
 
   inactivetext: {
     fontWeight: '700',
+    paddingHorizontal: 5,
+    textAlign: 'center',
     color: '#CCCCCC'
+  },
+
+  letter_label: {
+    width: 70,
+    height: 70,
+    borderRadius: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    top: 0,
+    right: 30,
+  },
+
+  letter_label_text: {
+    textAlign: 'center',
   }
 });
