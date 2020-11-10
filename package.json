@@ -19,7 +19,7 @@
     "android"
   ],
   "dependencies": {
-    "deprecated-react-native-listview": "0.0.5",
+    "deprecated-react-native-listview": "0.0.6",
     "merge": "^1.2.0",
     "prop-types": "^15.6.0"
   }
