@@ -47,7 +47,7 @@ export default class SelectableSectionsListView extends Component {
     this.updateTagInSectionMap = this.updateTagInSectionMap.bind(this);
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.calculateTotalHeight();
   }
 
@@ -63,7 +63,7 @@ export default class SelectableSectionsListView extends Component {
     }, 0);
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.data && nextProps.data !== this.props.data) {
       this.calculateTotalHeight(nextProps.data);
     }

@@ -93,7 +93,7 @@ export default class SectionList extends Component {
     this.fixSectionItemMeasure();
   }
 
-  componentWillUnmount() {
+  UNSAFE_componentWillUnmount() {
     this.measureTimer && clearTimeout(this.measureTimer);
   }
 
